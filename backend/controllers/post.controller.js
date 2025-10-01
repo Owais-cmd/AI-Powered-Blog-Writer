@@ -2,6 +2,8 @@ import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
 
+import { summary, seo } from '../controllers/ai.controller.js'
+
 export const createPost = async (req, res) => {
     try {
         const { title, content, image } = req.body;
@@ -9,7 +11,10 @@ export const createPost = async (req, res) => {
             return res.status(400).json({ message: "Title and content are required" });
         }
         const userId = req.user._id; // Assuming user ID is available in req.user
-        const newPost = new Post({ title, content, image, user: userId });
+        const summaryResult = await summary(req, res);
+        const seoResult = await seo(req, res);
+        const parsedKeywords = seoResult.slice(1, -2).split(',');
+        const newPost = new Post({ title, content, image, user: userId, summary: summaryResult, tags: parsedKeywords });
         const user = await User.findById(userId);
         user.posts.push(newPost._id);
         await user.save();
@@ -17,6 +22,7 @@ export const createPost = async (req, res) => {
         await newPost.save();
         res.status(201).json(newPost);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Server error" });
     }
 };
@@ -24,7 +30,7 @@ export const createPost = async (req, res) => {
 export const getPosts = async (req, res) => {
     try {
         const posts = await Post.find().populate('user').populate('likes').populate('comments');
-        const filteredPosts = posts.filter(post => post.user._id!=req.user._id);
+        const filteredPosts = posts.filter(post => post.user._id.toString() !== req.user._id.toString());
         const postsWithSortedComments = filteredPosts.map(post => {
             const sortedComments = post.comments.sort((a, b) => b.createdAt - a.createdAt);
             return { ...post._doc, comments: sortedComments };
@@ -43,7 +49,7 @@ export const likePost = async (req, res) => {
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
-        if(!post.user.equals(userId)){
+        if (post.user.toString() === userId.toString()) {
             return res.status(403).json({ message: "You cannot like your own post" });
         }
         if (post.likes.includes(userId)) {
@@ -85,7 +91,7 @@ export const deletePost = async (req, res) => {
         user.posts.pull(postId);
         await user.save();
         await Comment.deleteMany({ post: postId });
-        req.user = user; 
+        req.user = user;
         res.status(200).json({ message: "Post deleted successfully" });
     } catch (error) {
         res.status(500).json({ message: "Server error" });
@@ -94,38 +100,86 @@ export const deletePost = async (req, res) => {
 
 // GET /api/search/atlas?query=...
 export const searchPost = async (req, res) => {
-  const { query } = req.body;
-  if (!query) return res.json({ posts: [], users: [] });
+    const { query } = req.body;
+    if (!query) return res.json({ posts: [], users: [] });
 
-  try {
-    const posts = await Post.aggregate([
-      {
-    $search: {
-      index: "default",
-      compound: {
-        should: [
-          {
-            autocomplete: {
-              query,
-              path: "title",
-              fuzzy: { maxEdits: 2 }
-            }
-          },
-          {
-            text: {
-              query,
-              path: "content"
-            }
-          }
-        ]
-      }
+    try {
+        const pipeline = [
+            {
+                $search: {
+                    index: "dynamic", // or "default" if you're using default
+                    compound: {
+                        should: [
+                            // exact phrase (ranks highest)
+                            { phrase: { query, path: "title" } },
+
+                            // prefix/typeahead (autocomplete)
+                            { autocomplete: { query, path: "title", fuzzy: { maxEdits: 1 } } },
+
+                            {autocomplete: {
+                                path: "tags",
+                                query,
+                                fuzzy: { maxEdits: 1 }
+                            }},
+
+                            // fuzzy full-text match in content
+                            { text: { query, path: "content", fuzzy: { maxEdits: 1 } } }
+                        ]
+                    }
+                }
+            },
+
+            // include score to sort/inspect
+            { $addFields: { score: { $meta: "searchScore" } } },
+
+            // Populate user (aggregation-style)
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "user",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+
+            // project only needed fields
+            {
+                $project: {
+                    title: 1,
+                    content: 1,
+                    "user._id": 1,
+                    "user.name": 1,
+                    "user.email": 1,
+                    score: 1,
+                    tags: 1,
+                    likes: { $size: "$likes" },
+                    comments: 1,
+                    summary: 1,
+                    createdAt: 1
+                }
+            },
+
+            { $limit: 5 }
+        ];
+        const posts = await Post.aggregate(pipeline);
+
+        res.json({ posts });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-  },
-  { $limit: 10 }
-    ]);
-    res.json({ posts});
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+};
+
+export const getPostById = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const post = await Post.findById(postId).populate('user').populate('likes').populate('comments');
+        if (!post) {
+            return res.status(404).json({ message: "Post not found" });
+        }
+        res.status(200).json(post);
+    } catch (error) {
+        res.status(500).json({ message: "Server error" });
+    }
 };
 

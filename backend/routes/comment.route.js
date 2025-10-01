@@ -6,6 +6,6 @@ import { verifier } from '../middlewares/auth.middleware.js';
 const app = express.Router();
 
 app.post('/', verifier, addComment);
-app.get('/:postId', getCommentsByPost);
+app.get('/:postId', verifier,getCommentsByPost);
 
 export default app;

@@ -8,7 +8,7 @@ const app = express.Router();
 
 app.post('/signin', signin);
 app.post('/login', login);
-app.get('/getUser/:email', getUser);
+app.get('/getUser/:id', verifier,getUser);
 app.post('/logout', logout);
 app.get('/me', verifier, getMe);
 

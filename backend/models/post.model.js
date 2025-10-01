@@ -13,6 +13,11 @@ const postSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    summary: { type: String, default: "" },
+    tags: {
+        type: [String],
+        default: []
+    },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     likes: [
         { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: [] }
