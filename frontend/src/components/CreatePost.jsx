@@ -1,0 +1,365 @@
+"use client"
+
+import React from "react"
+import { motion } from "framer-motion"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { Sparkles, Eye, Send, X, Tag } from "lucide-react"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+
+// Simple, stubbed "grammar issues" dictionary.
+// We treat these as suspicious tokens to underline in preview when proofread is active.
+const SUSPICIOUS_TOKENS = [
+  "teh",
+  "alot",
+  "recieve",
+  "definately",
+  "seperate",
+  "occured",
+  "untill",
+  "wich",
+  "becuase",
+  "adress",
+  "wierd",
+  "very",
+  "really",
+  "basically",
+]
+
+// Utility to tokenize input and add a tag
+function addTagFromInput(input, tags, setTags, clearInput) {
+  const cleaned = input.trim().replace(/(^#)|,+$/g, "")
+  if (!cleaned) return
+  if (!tags.includes(cleaned)) {
+    setTags([...tags, cleaned])
+  }
+  clearInput()
+}
+
+// Highlight suspicious tokens with a red dotted underline in preview.
+// We apply this to common text containers in ReactMarkdown via components prop.
+function highlightText(text, proofreadActive) {
+  if (!proofreadActive || !text) return text
+
+  // Split on word boundaries to preserve punctuation spacing
+  return text.split(/(\b)/).map((chunk, idx) => {
+    const lower = chunk.toLowerCase()
+    if (SUSPICIOUS_TOKENS.includes(lower)) {
+      return (
+        <span
+          key={idx}
+          className="underline decoration-red-500/80 decoration-dotted underline-offset-4"
+          title="Possible issue (mock)"
+        >
+          {chunk}
+        </span>
+      )
+    }
+    return <React.Fragment key={idx}>{chunk}</React.Fragment>
+  })
+}
+
+export default function CreatePost() {
+  const [title, setTitle] = React.useState("")
+  const [tagInput, setTagInput] = React.useState("")
+  const [tags, setTags] = React.useState([])
+  const [content, setContent] = React.useState(`# Welcome to your new post
+
+Write your content in Markdown. Use **bold**, _italics_, lists, and more.
+
+- Use Tabs on mobile to switch between editor and preview
+- On larger screens, you will see a side-by-side two-pane layout
+
+Happy writing!`)
+  const [activeTab, setActiveTab] = React.useState("editor")
+  const [proofreadActive, setProofreadActive] = React.useState(false)
+
+  const clearTagInput = () => setTagInput("")
+
+  function handleTagKeyDown(e) {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault()
+      addTagFromInput(tagInput, tags, setTags, clearTagInput)
+    } else if (e.key === "Backspace" && tagInput.length === 0 && tags.length > 0) {
+      // Remove last tag on backspace when input empty
+      setTags(tags.slice(0, -1))
+    }
+  }
+
+  function handleTagBlur() {
+    // Add any pending tag when leaving input
+    if (tagInput.trim().length) {
+      addTagFromInput(tagInput, tags, setTags, clearTagInput)
+    }
+  }
+
+  function removeTag(name) {
+    setTags(tags.filter((t) => t !== name))
+  }
+
+  function onProofread() {
+    // Mock: toggles proofread state so preview underlines suspicious words.
+    setProofreadActive(true)
+  }
+
+  function onPreview() {
+    setActiveTab("preview")
+  }
+
+  function onPublish() {
+    console.log("[v0] Published post:", {
+      title,
+      tags,
+      content,
+      publishedAt: new Date().toISOString(),
+    })
+    // You could optionally clear the form or show a toast here.
+  }
+
+  // AceternityUI-inspired micro-animations
+  const cardVariants = {
+    hidden: { opacity: 0, y: 8 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: "easeOut" } },
+  }
+
+  const buttonWhileHover = { scale: 1.02 }
+  const buttonWhileTap = { scale: 0.98 }
+
+  return (
+    <main className="min-h-[calc(100vh-4rem)] py-8 px-4 md:py-12">
+      <motion.div initial="hidden" animate="visible" variants={cardVariants} className="mx-auto w-full max-w-4xl">
+        <Card className="border-border/50 shadow-sm">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-balance text-2xl font-semibold tracking-tight">Create a New Post</CardTitle>
+            <CardDescription className="text-pretty">
+              Draft, proofread, and preview your post before publishing. Tags help readers discover your content.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* Title */}
+            <div className="space-y-2">
+              <label htmlFor="title" className="text-sm font-medium text-foreground/80">
+                Title
+              </label>
+              <Input
+                id="title"
+                placeholder="A concise, compelling title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="h-12 text-lg font-semibold"
+                aria-label="Post title"
+              />
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-2">
+              <label htmlFor="tags" className="text-sm font-medium text-foreground/80">
+                Tags
+              </label>
+
+              <div
+                className="flex flex-wrap items-center gap-2 rounded-md border border-border/70 bg-background px-3 py-2"
+                aria-live="polite"
+                aria-label="Tags input"
+              >
+                {tags.map((t) => (
+                  <Badge key={t} variant="secondary" className="flex items-center gap-1 pr-1">
+                    <Tag className="size-3.5" aria-hidden />
+                    <span>{t}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeTag(t)}
+                      className="ml-1 rounded hover:bg-foreground/10"
+                      aria-label={`Remove tag ${t}`}
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </Badge>
+                ))}
+
+                <Input
+                  id="tags"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                  onBlur={handleTagBlur}
+                  placeholder="Add a tag and press Enter"
+                  className="h-9 border-0 px-0 focus-visible:ring-0"
+                  aria-label="Add tag"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Press Enter or comma to add a tag. Backspace removes the last tag.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-2">
+              <motion.div whileHover={buttonWhileHover} whileTap={buttonWhileTap}>
+                <Button variant="secondary" onClick={onProofread}>
+                  <Sparkles className="mr-2 size-4" />
+                  Proofread
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={buttonWhileHover} whileTap={buttonWhileTap}>
+                <Button variant="outline" onClick={onPreview}>
+                  <Eye className="mr-2 size-4" />
+                  Preview
+                </Button>
+              </motion.div>
+
+              <motion.div whileHover={buttonWhileHover} whileTap={buttonWhileTap} className="ml-auto">
+                <Button onClick={onPublish}>
+                  <Send className="mr-2 size-4" />
+                  Publish
+                </Button>
+              </motion.div>
+            </div>
+
+            {/* Mobile: Tabs for Editor/Preview */}
+            <div className="md:hidden">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="editor">Editor</TabsTrigger>
+                  <TabsTrigger value="preview">Preview</TabsTrigger>
+                </TabsList>
+                <TabsContent value="editor" className="space-y-2">
+                  <div className=" border-2  rounded-md  ">
+                    <label htmlFor="content-mobile" className="sr-only">
+                    Editor content
+                  </label>
+                  <Textarea
+                    id="content-mobile"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    className="min-h-[260px] resize-y"
+                    placeholder="Write your post in Markdown..."
+                    aria-label="Markdown editor"
+                  />
+                  </div>
+                  
+                </TabsContent>
+                <TabsContent value="preview" className="space-y-2">
+                  <div className="rounded-md border border-border/60 bg-card p-4">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        p: ({ node, children }) => (
+                          <p>
+                            {Array.isArray(children)
+                              ? children.map((child, i) =>
+                                  typeof child === "string" ? highlightText(child, proofreadActive) : child,
+                                )
+                              : typeof children === "string"
+                                ? highlightText(children, proofreadActive)
+                                : children}
+                          </p>
+                        ),
+                        li: ({ node, children }) => (
+                          <li>
+                            {Array.isArray(children)
+                              ? children.map((child, i) =>
+                                  typeof child === "string" ? highlightText(child, proofreadActive) : child,
+                                )
+                              : typeof children === "string"
+                                ? highlightText(children, proofreadActive)
+                                : children}
+                          </li>
+                        ),
+                        h1: ({ children }) => <h1 className="mt-6 text-3xl font-bold">{children}</h1>,
+                        h2: ({ children }) => <h2 className="mt-5 text-2xl font-semibold">{children}</h2>,
+                        h3: ({ children }) => <h3 className="mt-4 text-xl font-semibold">{children}</h3>,
+                        code: ({ children }) => (
+                          <code className="rounded bg-muted px-1.5 py-0.5 text-sm">{children}</code>
+                        ),
+                        a: (props) => <a {...props} className="text-primary underline underline-offset-4" />,
+                      }}
+                    >
+                      {content}
+                    </ReactMarkdown>
+                  </div>
+                  {proofreadActive && (
+                    <p className="text-xs text-muted-foreground">
+                      Underlined words indicate potential issues (mocked).
+                    </p>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Desktop: Two-pane editor/preview */}
+            <div className="hidden gap-4 md:grid md:grid-cols-2">
+              <div className="flex flex-col">
+                <label htmlFor="content" className="mb-2 text-sm font-medium text-foreground">
+                  Editor
+                </label>
+                <Textarea
+                  id="content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="min-h-[420px] resize-y bg-background"
+                  placeholder="Write your post in Markdown..."
+                  aria-label="Markdown editor"
+                />
+              </div>
+              <div className="flex flex-col">
+                <label className="mb-2 text-sm font-medium text-foreground/80">Live Preview</label>
+                <div className="min-h-[420px] rounded-md border border-border/60 bg-card p-5">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      p: ({ node, children }) => (
+                        <p>
+                          {Array.isArray(children)
+                            ? children.map((child, i) =>
+                                typeof child === "string" ? highlightText(child, proofreadActive) : child,
+                              )
+                            : typeof children === "string"
+                              ? highlightText(children, proofreadActive)
+                              : children}
+                        </p>
+                      ),
+                      li: ({ node, children }) => (
+                        <li>
+                          {Array.isArray(children)
+                            ? children.map((child, i) =>
+                                typeof child === "string" ? highlightText(child, proofreadActive) : child,
+                              )
+                            : typeof children === "string"
+                              ? highlightText(children, proofreadActive)
+                              : children}
+                        </li>
+                      ),
+                      h1: ({ children }) => <h1 className="mt-6 text-3xl font-bold">{children}</h1>,
+                      h2: ({ children }) => <h2 className="mt-5 text-2xl font-semibold">{children}</h2>,
+                      h3: ({ children }) => <h3 className="mt-4 text-xl font-semibold">{children}</h3>,
+                      code: ({ children }) => (
+                        <code className="rounded bg-muted px-1.5 py-0.5 text-sm">{children}</code>
+                      ),
+                      a: (props) => <a {...props} className="text-primary underline underline-offset-4" />,
+                    }}
+                  >
+                    {content}
+                  </ReactMarkdown>
+                </div>
+                {proofreadActive && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Underlined words indicate potential issues (mocked).
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </main>
+  )
+}
