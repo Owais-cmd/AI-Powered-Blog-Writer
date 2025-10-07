@@ -16,21 +16,6 @@ function formatDate(isoString) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
 }
 
-function TagChip({ tag, onRemove }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-foreground">
-      <span>#{tag}</span>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="rounded-sm px-1 text-muted-foreground hover:text-foreground"
-        aria-label={`Remove tag ${tag}`}
-      >
-        ×
-      </button>
-    </span>
-  )
-}
 
 export default function Profile() {
   const prefersReducedMotion = useReducedMotion()
@@ -66,35 +51,6 @@ export default function Profile() {
     },
   ])
 
-  // Tags for the profile user interests (editable chips)
-  const [tags, setTags] = useState(["writing", "ai", "blog"])
-  const [newTag, setNewTag] = useState("")
-
-  const onAddTag = useCallback(() => {
-    const t = newTag.trim().toLowerCase()
-    if (!t) return
-    if (tags.includes(t)) return
-    setTags((prev) => [...prev, t])
-    setNewTag("")
-  }, [newTag, tags])
-
-  const onTagKeyDown = useCallback(
-    (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault()
-        onAddTag()
-      }
-    },
-    [onAddTag],
-  )
-
-  const onRemoveTag = useCallback(
-    (t) => {
-      setTags((prev) => prev.filter((x) => x !== t))
-    },
-    [setTags],
-  )
-
   // Avatar upload
   const fileInputRef = useRef(null)
   const onChangeAvatar = useCallback((e) => {
@@ -118,8 +74,8 @@ export default function Profile() {
 
   const onUpdateProfile = useCallback(() => {
     // Mock backend call
-    console.log("[mock] update profile", { name, bio, avatarUrl, interests: tags })
-  }, [name, bio, avatarUrl, tags])
+    console.log("[mock] update profile", { name, bio, avatarUrl })
+  }, [name, bio, avatarUrl])
 
   const onDeletePost = useCallback(
     (id) => {
@@ -128,16 +84,6 @@ export default function Profile() {
     },
     [setPosts],
   )
-
-  const editHrefFor = useCallback((post) => {
-    const q = new URLSearchParams({
-      title: post.title,
-      tags: post.tags.join(","),
-      content: post.content || "",
-    })
-    // You can change this path to your actual CreatePost page route
-    return `/create?${q.toString()}`
-  }, [])
 
   const containerVariants = useMemo(
     () => ({
@@ -178,7 +124,7 @@ export default function Profile() {
         <Card className="border border-border bg-card">
           <CardHeader className="flex flex-row items-center gap-4">
             <div className="relative">
-              <Avatar className="h-16 w-16">
+              <Avatar className="h-16 w-16 border">
                 <AvatarImage
                   src={avatarUrl || "/placeholder.svg?height=128&width=128&query=profile%20avatar"}
                   alt={name ? `${name} avatar` : "User avatar"}
@@ -189,7 +135,7 @@ export default function Profile() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                className="absolute -bottom-2 right-0 rounded-full border border-border bg-background/80 backdrop-blur"
+                className="absolute -bottom-2 left-[-0.5px] rounded-full border border-border bg-foreground backdrop-blur"
                 onClick={() => fileInputRef.current?.click()}
                 aria-label="Change avatar"
               >
@@ -224,29 +170,6 @@ export default function Profile() {
                 placeholder="Tell us about yourself"
                 rows={4}
               />
-            </div>
-
-            <div className="grid gap-2">
-              <label htmlFor="interests" className="text-sm font-medium text-muted-foreground">
-                Interests / Tags
-              </label>
-              <div className="flex flex-wrap items-center gap-2">
-                {tags.map((t) => (
-                  <TagChip key={t} tag={t} onRemove={() => onRemoveTag(t)} />
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="interests"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyDown={onTagKeyDown}
-                  placeholder="Add a tag and press Enter"
-                />
-                <Button type="button" onClick={onAddTag} variant="secondary">
-                  Add
-                </Button>
-              </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
@@ -283,12 +206,20 @@ export default function Profile() {
                     <p className="text-sm text-muted-foreground">Created {formatDate(p.createdAt)}</p>
                   </CardContent>
                   <CardFooter className="flex items-center gap-2">
-                    <Button asChild variant="secondary">
-                      <Link href={editHrefFor(p)}>Edit</Link>
-                    </Button>
                     <Button variant="destructive" onClick={() => onDeletePost(p.id)}>
                       Delete
                     </Button>
+                     <Link to={`/post/${p.id}`}>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                    }}
+                                  >
+                                    Check it out
+                                  </Button>
+                                  </Link>
                   </CardFooter>
                 </Card>
               </motion.div>

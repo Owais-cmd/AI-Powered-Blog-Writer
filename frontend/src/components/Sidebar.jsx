@@ -1,16 +1,19 @@
 "use client"
 import { NavLink } from "react-router-dom"
-import { useState } from "react"
-import { Home, PlusSquare, FileText, User ,ChevronLeft,ChevronRight } from "lucide-react"
+import { Button } from "./ui/button"
+import { Menu } from "lucide-react"
+import { useSidebar } from "../store/useSidebar"
+import { Home, PlusSquare, FileText, User } from "lucide-react"
 
 const navItems = [
-  { to: "/app/feed", label: "Feed", icon: Home },
-  { to: "/app/create", label: "Create Post", icon: PlusSquare },
-  { to: "/app/myposts", label: "My Posts", icon: FileText },
-  { to: "/app/profile", label: "Profile", icon: User },
+  { to: "/", label: "Feed", icon: Home },
+  { to: "/create", label: "Create Post", icon: PlusSquare },
+  { to: "/myPosts", label: "My Posts", icon: FileText },
+  { to: "/profile", label: "Profile", icon: User },
 ]
 
 export default function Sidebar({ isOpen = false, onNavigate }) {
+  const {toggle} = useSidebar();
   return (
     <aside
       aria-label="Sidebar navigation"
@@ -18,7 +21,7 @@ export default function Sidebar({ isOpen = false, onNavigate }) {
         "fixed inset-y-0 left-0 z-40 w-64 border-r border-border bg-card text-foreground",
         "transform transition-transform duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "-translate-x-full",
-        "md:translate-x-0",
+        
       ].join(" ")}
     >
       {/* Header */}
@@ -28,7 +31,7 @@ export default function Sidebar({ isOpen = false, onNavigate }) {
       </div>
 
       {/* Navigation */}
-      <nav className="p-2 flex flex-col justify-between">
+      <nav className="p-2 flex flex-col justify-between h-9/10">
         <ul className="space-y-1">
           {navItems.map(({ to, label, icon: Icon }) => (
             <li key={to}>
@@ -51,7 +54,11 @@ export default function Sidebar({ isOpen = false, onNavigate }) {
             </li>
           ))}
         </ul>
-    
+        <Button variant="ghost" size="icon" className=" w-full md:hidden" aria-label="Open sidebar" onClick={()=>{toggle();
+            console.log("button pressed")
+          }}>
+            <Menu className="h-5 w-5" />
+        </Button>
       </nav>
     </aside>
   )

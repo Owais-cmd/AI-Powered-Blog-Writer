@@ -67,8 +67,6 @@ function highlightText(text, proofreadActive) {
 
 export default function CreatePost() {
   const [title, setTitle] = React.useState("")
-  const [tagInput, setTagInput] = React.useState("")
-  const [tags, setTags] = React.useState([])
   const [content, setContent] = React.useState(`# Welcome to your new post
 
 Write your content in Markdown. Use **bold**, _italics_, lists, and more.
@@ -80,28 +78,10 @@ Happy writing!`)
   const [activeTab, setActiveTab] = React.useState("editor")
   const [proofreadActive, setProofreadActive] = React.useState(false)
 
-  const clearTagInput = () => setTagInput("")
 
-  function handleTagKeyDown(e) {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault()
-      addTagFromInput(tagInput, tags, setTags, clearTagInput)
-    } else if (e.key === "Backspace" && tagInput.length === 0 && tags.length > 0) {
-      // Remove last tag on backspace when input empty
-      setTags(tags.slice(0, -1))
-    }
-  }
 
-  function handleTagBlur() {
-    // Add any pending tag when leaving input
-    if (tagInput.trim().length) {
-      addTagFromInput(tagInput, tags, setTags, clearTagInput)
-    }
-  }
+ 
 
-  function removeTag(name) {
-    setTags(tags.filter((t) => t !== name))
-  }
 
   function onProofread() {
     // Mock: toggles proofread state so preview underlines suspicious words.
@@ -156,48 +136,6 @@ Happy writing!`)
                 className="h-12 text-lg font-semibold"
                 aria-label="Post title"
               />
-            </div>
-
-            {/* Tags */}
-            <div className="space-y-2">
-              <label htmlFor="tags" className="text-sm font-medium text-foreground/80">
-                Tags
-              </label>
-
-              <div
-                className="flex flex-wrap items-center gap-2 rounded-md border border-border/70 bg-background px-3 py-2"
-                aria-live="polite"
-                aria-label="Tags input"
-              >
-                {tags.map((t) => (
-                  <Badge key={t} variant="secondary" className="flex items-center gap-1 pr-1">
-                    <Tag className="size-3.5" aria-hidden />
-                    <span>{t}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeTag(t)}
-                      className="ml-1 rounded hover:bg-foreground/10"
-                      aria-label={`Remove tag ${t}`}
-                    >
-                      <X className="size-3.5" />
-                    </button>
-                  </Badge>
-                ))}
-
-                <Input
-                  id="tags"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={handleTagKeyDown}
-                  onBlur={handleTagBlur}
-                  placeholder="Add a tag and press Enter"
-                  className="h-9 border-0 px-0 focus-visible:ring-0"
-                  aria-label="Add tag"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Press Enter or comma to add a tag. Backspace removes the last tag.
-              </p>
             </div>
 
             {/* Actions */}

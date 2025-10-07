@@ -11,19 +11,21 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { useFeed } from "../store/useFeed"
+import { ModeToggle } from "@/components/Mode_toggle"
+import {Link} from "react-router-dom"
 
 export default function Topbar({
   onMenuClick,
-  searchQuery = "",
-  onSearchChange,
   onSearchSubmit,
   placeholder = "Search posts...",
 }) {
+  const {query, setQuery} = useFeed()
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex h-16 items-center gap-3 px-4 md:px-6">
-        <div className="md:hidden">
-          <Button variant="ghost" size="icon" aria-label="Open sidebar" onClick={onMenuClick}>
+        <div className="">
+          <Button variant="ghost" size="icon" aria-label="Open sidebar" onClick={()=>{onMenuClick()}}>
             <Menu className="h-5 w-5" />
           </Button>
         </div>
@@ -46,12 +48,12 @@ export default function Topbar({
             className="w-full"
             type="search"
             inputMode="search"
-            value={searchQuery}
-            onChange={(e) => onSearchChange?.(e.target.value)}
+            value={query}
+            onChange={(e) =>setQuery?.(e.target.value)}
           />
         </form>
 
-        <div className="ml-auto">
+        <div className="ml-auto flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full" aria-label="User menu">
@@ -64,10 +66,13 @@ export default function Topbar({
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Sign Out</DropdownMenuItem>
+              <Link to="/profile"><DropdownMenuItem>Profile</DropdownMenuItem></Link>
+              <Link to="/home"><DropdownMenuItem>Sign Out</DropdownMenuItem></Link>
             </DropdownMenuContent>
           </DropdownMenu>
+          <div className="pt-0.5">
+          <ModeToggle />
+          </div>
         </div>
       </div>
     </header>
