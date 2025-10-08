@@ -7,11 +7,11 @@ import remarkGfm from "remark-gfm"
 import { Sparkles, Eye, Send, X, Tag } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
 
 // Simple, stubbed "grammar issues" dictionary.
 // We treat these as suspicious tokens to underline in preview when proofread is active.
@@ -77,9 +77,46 @@ Write your content in Markdown. Use **bold**, _italics_, lists, and more.
 Happy writing!`)
   const [activeTab, setActiveTab] = React.useState("editor")
   const [proofreadActive, setProofreadActive] = React.useState(false)
+  const [coverImageUrl, setCoverImageUrl] = React.useState(null)
+  const [dragActive, setDragActive] = React.useState(false)
+  const fileInputRef = React.useRef(null)
 
+  // Cover image helpers (FileReader preview, DnD)
+  function handleFiles(files) {
+    const file = files?.[0]
+    if (!file) return
+    if (!file.type?.startsWith("image/")) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setCoverImageUrl(reader.result)
+    }
+    reader.readAsDataURL(file)
+  }
 
+  function onFileChange(e) {
+    handleFiles(e.target.files)
+  }
 
+  function onDragOver(e) {
+    e.preventDefault()
+    setDragActive(true)
+  }
+
+  function onDragLeave(e) {
+    e.preventDefault()
+    setDragActive(false)
+  }
+
+  function onDrop(e) {
+    e.preventDefault()
+    setDragActive(false)
+    handleFiles(e.dataTransfer?.files)
+  }
+
+  function removeCoverImage() {
+    setCoverImageUrl(null)
+    if (fileInputRef.current) fileInputRef.current.value = ""
+  }
  
 
 
@@ -123,6 +160,58 @@ Happy writing!`)
           </CardHeader>
 
           <CardContent className="space-y-6">
+            {/* Cover Image */}
+            <div className="space-y-2">
+              <Label htmlFor="cover" className="text-sm font-medium text-foreground/80">
+                Cover Image
+              </Label>
+
+              {coverImageUrl ? (
+                <div className="rounded-lg border border-border/60 bg-card p-3">
+                  <img
+                    src={coverImageUrl || "/placeholder.svg"}
+                    alt="Cover image preview"
+                    className="h-48 w-full rounded-md object-cover shadow-sm sm:h-64"
+                  />
+                  <div className="mt-3 flex items-center gap-2">
+                    <Button variant="outline" type="button" onClick={removeCoverImage}>
+                      Remove Image
+                    </Button>
+                    <Button variant="secondary" type="button" onClick={() => fileInputRef.current?.click()}>
+                      Change
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <label
+                  htmlFor="cover"
+                  onDragOver={onDragOver}
+                  onDragLeave={onDragLeave}
+                  onDrop={onDrop}
+                  className={[
+                    "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-8 text-center transition-colors",
+                    "border-border/70 bg-background hover:border-primary/40",
+                    dragActive ? "border-primary/60 bg-accent/10" : "",
+                  ].join(" ")}
+                >
+                  <div className="text-sm text-muted-foreground">
+                    Drag and drop an image here, or click to select a file.
+                  </div>
+                  <div className="text-xs text-muted-foreground/80">PNG, JPG, or WEBP up to ~5MB</div>
+                </label>
+              )}
+
+              <Input
+                id="cover"
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={onFileChange}
+                className="hidden"
+                aria-label="Upload cover image"
+              />
+            </div>
+
             {/* Title */}
             <div className="space-y-2">
               <label htmlFor="title" className="text-sm font-medium text-foreground/80">

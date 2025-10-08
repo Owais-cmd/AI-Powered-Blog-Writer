@@ -31,6 +31,7 @@ export default function PostPage({ post: postProp }) {
     id: "demo-1",
     title: "Designing AI-first Workflows",
     tags: ["AI", "Productivity", "Design"],
+    image: "/hero.png",
     author: {
       name: "Alex Rivera",
       username: "alex",
@@ -160,6 +161,18 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
         </Button>
 
         <Card className="border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+          <div>
+            {post.image && (
+              <div className="relative h-60 w-full overflow-hidden rounded-t-md">
+                <img
+                  src={post.image}
+                  alt={post.title}
+                  className="absolute inset-0 h-full w-full object-cover" 
+                  loading="lazy"
+                />
+              </div>
+            )}
+          </div>
           <CardHeader className="space-y-3">
             <CardTitle className="text-balance text-3xl font-bold leading-tight text-foreground">
               {post.title}
@@ -262,7 +275,6 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
               {comments.map((c) => (
                 <li key={c.id} className="flex items-start gap-3">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={c.avatar || "/placeholder.svg"} alt={`${c.name} avatar`} />
                     <AvatarFallback>{c.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">

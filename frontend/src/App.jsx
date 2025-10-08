@@ -6,12 +6,16 @@ import  Home from './pages/Home'
 import PostPage from './components/PostPage'
 import CreatePost from './components/CreatePost'
 import Profile from './components/Profie'
+import Signup  from './pages/Signup'
+import Login from './pages/Login'
 
 const App = () => {
   return (
     <div>
       <Routes>
         <Route path='/home' element={<LandingPage />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/signup' element={<Signup />} />
         <Route path="/" element={<Home />}>
           <Route path="/" element={<Feed />} />
           <Route path="create" element={<CreatePost />} />
