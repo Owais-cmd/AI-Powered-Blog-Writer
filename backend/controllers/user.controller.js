@@ -36,7 +36,7 @@ export const getUserPosts = async (req, res) => {
     try {
         const name = req.params.name;
         const user = User.find({name}).select('-password')
-        const posts = await Post.find({ user: user._id }).populate('user').populate('likes').populate('comments');
+        const posts = await Post.find({ user: user._id }).populate('user','-password').populate('likes').populate('comments');
         res.status(200).json({posts,user});
     } catch (error) {
         res.status(500).json({ message: "Server error" });

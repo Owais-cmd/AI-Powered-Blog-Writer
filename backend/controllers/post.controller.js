@@ -29,7 +29,7 @@ export const createPost = async (req, res) => {
 
 export const getPosts = async (req, res) => {
     try {
-        const posts = await Post.find().populate('user').populate('likes').populate('comments');
+        const posts = await Post.find().populate('user','-password').populate('likes').populate('comments');
         const filteredPosts = posts.filter(post => post.user._id.toString() !== req.user._id.toString());
         const postsWithSortedComments = filteredPosts.map(post => {
             const sortedComments = post.comments.sort((a, b) => b.createdAt - a.createdAt);
@@ -67,7 +67,7 @@ export const likePost = async (req, res) => {
 export const myPosts = async (req, res) => {
     try {
         const userId = req.user._id;
-        const posts = await Post.find({ user: userId }).populate('user').populate('likes').populate('comments');
+        const posts = await Post.find({ user: userId }).populate('user','-password').populate('likes').populate('comments');
         res.status(200).json(posts);
     } catch (error) {
         res.status(500).json({ message: "Server error" });
@@ -173,7 +173,7 @@ export const searchPost = async (req, res) => {
 export const getPostById = async (req, res) => {
     try {
         const postId = req.params.id;
-        const post = await Post.findById(postId).populate('user').populate('likes').populate('comments');
+        const post = await Post.findById(postId).populate('user','-password').populate('likes').populate('comments');
         if (!post) {
             return res.status(404).json({ message: "Post not found" });
         }
