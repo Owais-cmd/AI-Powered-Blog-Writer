@@ -1,12 +1,15 @@
+import {v2 as cloudinary} from "cloudinary";
+
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import Comment from "../models/comment.model.js";
 
-import { summary, seo } from '../controllers/ai.controller.js'
+import { summary, seo } from '../controllers/ai.controller.js';
 
 export const createPost = async (req, res) => {
     try {
-        const { title, content, image } = req.body;
+        const { title, content } = req.body;
+        let { image } = req.body;
         if (!title || !content) {
             return res.status(400).json({ message: "Title and content are required" });
         }
@@ -14,6 +17,10 @@ export const createPost = async (req, res) => {
         const summaryResult = await summary(req, res);
         const seoResult = await seo(req, res);
         const parsedKeywords = seoResult.slice(1, -2).split(',');
+        if (image) {
+            const uploadedResponse = await cloudinary.uploader.upload(image);
+            image = uploadedResponse.secure_url;
+        }
         const newPost = new Post({ title, content, image, user: userId, summary: summaryResult, tags: parsedKeywords });
         const user = await User.findById(userId);
         user.posts.push(newPost._id);
@@ -86,6 +93,9 @@ export const deletePost = async (req, res) => {
         if (!post.user.equals(userId)) {
             return res.status(403).json({ message: "You can only delete your own posts" });
         }
+        if(post.image){
+            await cloudinary.uploader.destroy(post.image.split("/").pop().split(".")[0]);
+        }
         await Post.findByIdAndDelete(postId);
         const user = await User.findById(userId);
         user.posts.pull(postId);
@@ -143,6 +153,26 @@ export const searchPost = async (req, res) => {
             },
             { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
 
+            // ✅ Populate likes (array of users)
+      {
+        $lookup: {
+          from: "users",
+          localField: "likes",
+          foreignField: "_id",
+          as: "likes"
+        }
+      },
+
+      // ✅ Optional: Populate comments too (if you want nested population)
+       {
+         $lookup: {
+           from: "comments",
+           localField: "comments",
+           foreignField: "_id",
+           as: "comments"
+         }
+       },
+
             // project only needed fields
             {
                 $project: {
@@ -153,7 +183,7 @@ export const searchPost = async (req, res) => {
                     "user.email": 1,
                     score: 1,
                     tags: 1,
-                    likes: { $size: "$likes" },
+                    likes: 1,
                     comments: 1,
                     summary: 1,
                     createdAt: 1

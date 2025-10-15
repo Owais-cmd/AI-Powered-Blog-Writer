@@ -1,4 +1,5 @@
 "use client"
+import { useEffect } from "react"
 import { Menu } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
@@ -14,6 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import { useFeed } from "../store/useFeed"
 import { ModeToggle } from "@/components/Mode_toggle"
 import {Link} from "react-router-dom"
+import { useAuthStore } from "../store/useAuthStore"
+import { usePostStore } from "../store/usePostStore"
+import { use } from "react"
 
 export default function Topbar({
   onMenuClick,
@@ -21,6 +25,14 @@ export default function Topbar({
   placeholder = "Search posts...",
 }) {
   const {query, setQuery} = useFeed()
+  const {logout,user} = useAuthStore();
+  const {searchPosts} = usePostStore();
+
+  async function onSearchChange(e){
+    setQuery(e.target.value);
+    searchPosts(e.target.value);
+  }
+
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="flex h-16 items-center gap-3 px-4 md:px-6">
@@ -49,7 +61,7 @@ export default function Topbar({
             type="search"
             inputMode="search"
             value={query}
-            onChange={(e) =>setQuery?.(e.target.value)}
+            onChange={onSearchChange}
           />
         </form>
 
@@ -58,8 +70,8 @@ export default function Topbar({
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full" aria-label="User menu">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src="/diverse-person-avatars.png" alt="User avatar" />
-                  <AvatarFallback>UA</AvatarFallback>
+                  <AvatarImage src={user.profileImage} alt="User avatar" />
+                  <AvatarFallback>{user.name.slice(0,2)}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -67,7 +79,7 @@ export default function Topbar({
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <Link to="/profile"><DropdownMenuItem>Profile</DropdownMenuItem></Link>
-              <Link to="/home"><DropdownMenuItem>Sign Out</DropdownMenuItem></Link>
+              <DropdownMenuItem><button onClick={logout}>Sign Out</button></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="pt-0.5">

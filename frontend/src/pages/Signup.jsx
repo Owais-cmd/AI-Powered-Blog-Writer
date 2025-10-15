@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useAuthStore } from "../store/useAuthStore"
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -19,6 +20,7 @@ export default function Signup() {
   })
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  const {isSigningUp, signup} = useAuthStore();
 
   function validate(values) {
     const next = {}
@@ -52,13 +54,9 @@ export default function Signup() {
     setErrors(v)
     if (Object.keys(v).length > 0) return
     try {
-      setSubmitting(true)
-      // Mock backend call
-      console.log("[v0] Signup submit:", { ...form, password: "•••", confirm: "•••" })
-      // Simulate async
-      await new Promise((r) => setTimeout(r, 700))
-    } finally {
-      setSubmitting(false)
+      signup({name:form.name,email:form.email,password:form.password}); 
+    }catch (error) {
+      console.log(error);
     }
   }
 

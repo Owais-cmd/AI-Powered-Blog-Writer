@@ -8,11 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { useAuthStore } from "../store/useAuthStore"
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" })
   const [errors, setErrors] = useState({})
   const [showPassword, setShowPassword] = useState(false)
+  const {isLoggingIn, login,user} = useAuthStore();
   const [submitting, setSubmitting] = useState(false)
 
   function onChange(e) {
@@ -33,12 +35,9 @@ export default function Login() {
     setErrors(v)
     if (Object.keys(v).length > 0) return
     try {
-      setSubmitting(true)
-      // Mock login call
-      console.log("[v0] Login submit:", { email: form.email, password: "•••" })
-      await new Promise((r) => setTimeout(r, 700))
-    } finally {
-      setSubmitting(false)
+      login({email:form.email,password:form.password});
+    }catch (error) {
+      console.log(error);
     }
   }
 
@@ -130,8 +129,8 @@ export default function Login() {
               </div>
 
               {/* Submit */}
-              <Button type="submit" className="w-full" disabled={submitting}>
-                {submitting ? "Logging in..." : "Login"}
+              <Button type="submit" className="w-full" disabled={isLoggingIn}>
+                {isLoggingIn ? "Logging in..." : "Login"}
               </Button>
 
               {/* Signup link */}

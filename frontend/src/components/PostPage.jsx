@@ -1,18 +1,24 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import {Link} from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
+import { Link, useParams } from "react-router-dom"
 import { motion } from "framer-motion"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Heart, ArrowLeft, Send } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { usePostStore } from "../store/usePostStore"
+import { useAuthStore } from "../store/useAuthStore"
+import { set } from "mongoose"
+import { use } from "react"
+import toast from "react-hot-toast"
 
 function readingTimeFromMarkdown(md) {
   const words = md?.split(/\s+/g).filter(Boolean).length || 0
@@ -25,44 +31,13 @@ const fadeIn = {
   animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
 }
 
-export default function PostPage({ post: postProp }) {
-  // Mock fallback post if none provided
-  const post = postProp || {
-    id: "demo-1",
-    title: "Designing AI-first Workflows",
-    tags: ["AI", "Productivity", "Design"],
-    image: "/hero.png",
-    author: {
-      name: "Alex Rivera",
-      username: "alex",
-      avatar: "/author-avatar.jpg",
-    },
-    publishedAt: new Date().toISOString(),
-    content: `# Rethinking Workflows for the AI Era
-
-AI allows us to shift our focus from repetitive tasks to higher-level thinking.
-This article explores practical strategies for designing **AI-first** workflows that are both effective and delightful.
-
-## Key Principles
-
-- Automate the repetitive
-- Keep humans in the loop for nuance
-- Measure outcomes, not activity
-
-### Example
-
-\`\`\`js
-export function summarize(text) {
-  // pseudo-code for illustrative purposes
-  return callModel("openai/gpt-5-mini", { prompt: "Summarize: " + text })
-}
-\`\`\`
-
-Learn more at [vercel.com/ai](https://vercel.com/ai).`,
-  }
+export default function PostPage() {
+  const { id } = useParams()
+  const { getPostById, isLoadingPost, post, likePost } = usePostStore();
+  const { user } = useAuthStore();
 
   const [liked, setLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(42)
+  const [likeCount, setLikeCount] = useState(post?.likes?.length || 0)
   const [commentText, setCommentText] = useState("")
   const [comments, setComments] = useState([
     {
@@ -81,9 +56,31 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
     },
   ])
 
+  useEffect(() => {
+    if (id) {
+      getPostById(id);
+    }
+
+  }, [getPostById, id])
+
+  useEffect(() => {
+    if (post && user) {
+      if (user?._id) {
+        const isLiked = post.likes.some(
+          (like) => like._id === user._id // ✅ compare by _id
+        );
+        setLiked(isLiked);
+        setLikeCount(post.likes.length || 0)
+      }
+    }}, [post,user])
+
+
+  
+
   const formattedDate = useMemo(() => {
     try {
-      return new Date(post.publishedAt).toLocaleDateString(undefined, {
+      if (!post?.createdAt) return "";
+      return new Date(post.createdAt).toLocaleDateString(undefined, {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -91,16 +88,21 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
     } catch {
       return ""
     }
-  }, [post.publishedAt])
+  }, [post?.createdAt])
 
-  const readTime = useMemo(() => readingTimeFromMarkdown(post.content || ""), [post.content])
+  const readTime = useMemo(() => {
+    if (!post?.content) return ""
+    readingTimeFromMarkdown(post.content || "")
+  }, [post?.content])
 
-  function onToggleLike() {
-    setLiked((prev) => {
-      const next = !prev
-      setLikeCount((c) => (next ? c + 1 : c - 1))
-      return next
-    })
+  async function onToggleLike(){
+    if(post?.user._id===user?._id){
+      toast.error("You cannot like your own post.")
+      return;
+    }
+    setLikeCount((count) => (liked ? Math.max(0, count - 1) : count + 1))
+    setLiked((v) => !v)
+    await likePost(post._id, user._id);
   }
 
   function onPostComment() {
@@ -149,6 +151,14 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
     hr: () => <Separator className="my-8" />,
   }
 
+  if (isLoadingPost) {
+
+    return <div className='w-full h-screen flex items-center justify-center'>
+      <Spinner />
+    </div>
+
+  }
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 md:py-12">
       {/* Header */}
@@ -162,12 +172,12 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
 
         <Card className="border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <div>
-            {post.image && (
+            {post?.image && (
               <div className="relative h-60 w-full overflow-hidden rounded-t-md">
                 <img
                   src={post.image}
                   alt={post.title}
-                  className="absolute inset-0 h-full w-full object-cover" 
+                  className="absolute inset-0 h-full w-full object-cover"
                   loading="lazy"
                 />
               </div>
@@ -175,13 +185,13 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
           </div>
           <CardHeader className="space-y-3">
             <CardTitle className="text-balance text-3xl font-bold leading-tight text-foreground">
-              {post.title}
+              {post?.title}
             </CardTitle>
 
             {/* Tags */}
             <div className="flex flex-wrap items-center gap-2">
-              {Array.isArray(post.tags) &&
-                post.tags.map((t) => (
+              {Array.isArray(post?.tags) &&
+                post?.tags.map((t) => (
                   <Badge key={t} variant="secondary" className="rounded-full">
                     {t}
                   </Badge>
@@ -191,20 +201,20 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
             {/* Author Row */}
             <div className="flex flex-wrap items-center gap-3 pt-1 text-sm text-muted-foreground">
               <Link
-                to={`/profile/${post.author?.username || ""}`}
+                to={`/profile/${post?.user?.name || ""}`}
                 className="flex items-center gap-2 hover:opacity-90"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarImage
-                    src={post.author?.avatar || "/placeholder.svg"}
-                    alt={post.author?.name || "Author avatar"}
+                    src={post?.user?.profileImage || "/placeholder.svg"}
+                    alt={post?.user?.name || "Author avatar"}
                   />
-                  <AvatarFallback>{(post.author?.name || "A").slice(0, 2).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>{(post?.user?.name || "A").slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
-                <span className="font-medium text-foreground">{post.author?.name}</span>
+                <span className="font-medium text-foreground">{post?.user?.name}</span>
               </Link>
               <span aria-hidden="true">•</span>
-              <time dateTime={post.publishedAt}>{formattedDate}</time>
+              <time dateTime={post?.publishedAt}>{formattedDate}</time>
               <span aria-hidden="true">•</span>
               <span>{readTime}</span>
             </div>
@@ -219,7 +229,7 @@ Learn more at [vercel.com/ai](https://vercel.com/ai).`,
               className="prose prose-neutral prose-headings:scroll-mt-24 max-w-none"
             >
               <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
-                {post.content || ""}
+                {post?.content || ""}
               </ReactMarkdown>
             </motion.div>
           </CardContent>

@@ -11,4 +11,18 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000', // Replace with your backend server URL
+        changeOrigin: true, // Recommended to change the origin of the host header to the target URL
+      },
+      // You can add more proxy rules here for different paths
+      // '/another-api': {
+      //   target: 'https://external-api.com',
+      //   changeOrigin: true,
+      //   secure: false, // Set to false if targeting an insecure (HTTP) external API
+      // },
+    },
+  },
 })

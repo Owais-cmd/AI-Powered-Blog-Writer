@@ -38,7 +38,7 @@ export default function LandingPage() {
                             </Button>
                             <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
                                 <Link
-                                    to="/signin"
+                                    to="/signup"
                                     className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
                                 >
                                     Sign Up
@@ -188,7 +188,7 @@ export default function LandingPage() {
                         </motion.div>
                     </motion.div>
                 </section>
-                <section className="border-t">
+                <section className="">
                     <Testimonials />
                 </section>
                 

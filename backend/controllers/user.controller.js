@@ -28,6 +28,7 @@
         req.user = user; // Update req.user with the latest user data
         res.status(200).json({ message: 'User updated successfully', user });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

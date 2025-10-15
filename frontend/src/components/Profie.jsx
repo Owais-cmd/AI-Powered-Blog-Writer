@@ -9,6 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {useAuthStore} from "../store/useAuthStore"
+import {usePostStore} from "../store/usePostStore"
+import {Spinner} from "@/components/ui/spinner"
+import toast from "react-hot-toast"
 
 function formatDate(isoString) {
   const d = new Date(isoString)
@@ -19,71 +23,49 @@ function formatDate(isoString) {
 
 export default function Profile() {
   const prefersReducedMotion = useReducedMotion()
-
+const {user,update, isUpdating}=useAuthStore();
   // Mocked profile data
-  const [name, setName] = useState("Alex Writer")
-  const [bio, setBio] = useState("Content strategist and blog enthusiast. Exploring AI-assisted writing.")
-  const [avatarUrl, setAvatarUrl] = useState("")
+  const [name, setName] = useState(user?.name)
+  const [bio, setBio] = useState(user?.bio || "")
+  const [avatarUrl, setAvatarUrl] = useState(user?.profileImage)
   const lastObjectUrlRef = useRef(null)
-
-  // Mocked posts
-  const [posts, setPosts] = useState(() => [
-    {
-      id: "p1",
-      title: "How to Outline Blog Posts Faster",
-      tags: ["productivity", "writing"],
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-      content: "Speed up your workflow with structured outlines and templates.",
-    },
-    {
-      id: "p2",
-      title: "AI Tools for Drafting",
-      tags: ["ai", "tools"],
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-      content: "Leverage AI tools to accelerate first drafts and ideation.",
-    },
-    {
-      id: "p3",
-      title: "SEO Basics for Bloggers",
-      tags: ["seo", "basics"],
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
-      content: "On-page essentials: titles, headings, and internal links.",
-    },
-  ])
-
-  // Avatar upload
-  const fileInputRef = useRef(null)
-  const onChangeAvatar = useCallback((e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const nextUrl = URL.createObjectURL(file)
-    if (lastObjectUrlRef.current) {
-      URL.revokeObjectURL(lastObjectUrlRef.current)
-    }
-    lastObjectUrlRef.current = nextUrl
-    setAvatarUrl(nextUrl)
-  }, [])
-
+  const {isLoadingPosts, myposts,isDeleting,getMyPosts,deletePost} = usePostStore()
+  
   useEffect(() => {
+    async function fetchPosts() {
+     await getMyPosts();
+    }
+    fetchPosts()
     return () => {
       if (lastObjectUrlRef.current) {
         URL.revokeObjectURL(lastObjectUrlRef.current)
       }
     }
+  }, [getMyPosts])
+
+  // Avatar upload
+  const fileInputRef = useRef(null)
+  const onChangeAvatar = useCallback((e) => {
+    const file = e.target.files?.[0]
+    ///
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = () => {
+				setAvatarUrl(reader.result);
+			};
+			reader.readAsDataURL(file);
+		}
   }, [])
 
+
   const onUpdateProfile = useCallback(() => {
-    // Mock backend call
-    console.log("[mock] update profile", { name, bio, avatarUrl })
+    update({name,bio,profileImage:avatarUrl});
   }, [name, bio, avatarUrl])
 
-  const onDeletePost = useCallback(
-    (id) => {
-      setPosts((prev) => prev.filter((p) => p.id !== id))
-      console.log("[mock] deleted post", id)
-    },
-    [setPosts],
-  )
+  const onDeletePost = async(postId) => {
+    await deletePost(postId);
+    toast.success("Post deleted")
+  }
 
   const containerVariants = useMemo(
     () => ({
@@ -103,6 +85,15 @@ export default function Profile() {
           },
     [prefersReducedMotion],
   )
+
+  if(isLoadingPosts){
+   
+    return <div className='w-full h-screen flex items-center justify-center'>
+      <Spinner />
+    </div>
+  
+  }
+
 
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-10 md:py-12">
@@ -129,7 +120,7 @@ export default function Profile() {
                   src={avatarUrl || "/placeholder.svg?height=128&width=128&query=profile%20avatar"}
                   alt={name ? `${name} avatar` : "User avatar"}
                 />
-                <AvatarFallback className="text-sm">USR</AvatarFallback>
+                <AvatarFallback className="text-sm">{name.slice(0,2)}</AvatarFallback>
               </Avatar>
               <Button
                 type="button"
@@ -173,8 +164,8 @@ export default function Profile() {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button type="button" onClick={onUpdateProfile} className="font-medium">
-              Update Profile
+            <Button type="button" onClick={onUpdateProfile} className="font-medium" disabled={isUpdating}>
+              {isUpdating ? "Updating..." : "Update"}
             </Button>
           </CardFooter>
         </Card>
@@ -186,8 +177,8 @@ export default function Profile() {
           </h2>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {posts.map((p) => (
-              <motion.div key={p.id} {...cardHover}>
+            {myposts.map((p) => (
+              <motion.div key={p._id} {...cardHover}>
                 <Card className="h-full border border-border bg-card">
                   <CardHeader>
                     <CardTitle className="text-base font-semibold text-foreground">{p.title}</CardTitle>
@@ -206,16 +197,13 @@ export default function Profile() {
                     <p className="text-sm text-muted-foreground">Created {formatDate(p.createdAt)}</p>
                   </CardContent>
                   <CardFooter className="flex items-center gap-2">
-                    <Button variant="destructive" onClick={() => onDeletePost(p.id)}>
-                      Delete
+                    <Button variant="destructive" onClick={() => onDeletePost(p._id)} disabled={isDeleting}>
+                      {isDeleting?'Deleting...':"Delete"}
                     </Button>
-                     <Link to={`/post/${p.id}`}>
+                     <Link to={`/post/${p._id}`}>
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                    }}
                                   >
                                     Check it out
                                   </Button>

@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-
+import { usePostStore } from "../store/usePostStore"
+import { toast } from "react-hot-toast"
 // Simple, stubbed "grammar issues" dictionary.
 // We treat these as suspicious tokens to underline in preview when proofread is active.
 const SUSPICIOUS_TOKENS = [
@@ -32,15 +33,7 @@ const SUSPICIOUS_TOKENS = [
   "basically",
 ]
 
-// Utility to tokenize input and add a tag
-function addTagFromInput(input, tags, setTags, clearInput) {
-  const cleaned = input.trim().replace(/(^#)|,+$/g, "")
-  if (!cleaned) return
-  if (!tags.includes(cleaned)) {
-    setTags([...tags, cleaned])
-  }
-  clearInput()
-}
+
 
 // Highlight suspicious tokens with a red dotted underline in preview.
 // We apply this to common text containers in ReactMarkdown via components prop.
@@ -68,7 +61,7 @@ function highlightText(text, proofreadActive) {
 export default function CreatePost() {
   const [title, setTitle] = React.useState("")
   const [content, setContent] = React.useState(`# Welcome to your new post
-
+  
 Write your content in Markdown. Use **bold**, _italics_, lists, and more.
 
 - Use Tabs on mobile to switch between editor and preview
@@ -80,12 +73,11 @@ Happy writing!`)
   const [coverImageUrl, setCoverImageUrl] = React.useState(null)
   const [dragActive, setDragActive] = React.useState(false)
   const fileInputRef = React.useRef(null)
-
+  const {createPost, isCreatingPost} = usePostStore();
   // Cover image helpers (FileReader preview, DnD)
   function handleFiles(files) {
     const file = files?.[0]
     if (!file) return
-    if (!file.type?.startsWith("image/")) return
     const reader = new FileReader()
     reader.onload = () => {
       setCoverImageUrl(reader.result)
@@ -129,14 +121,15 @@ Happy writing!`)
     setActiveTab("preview")
   }
 
-  function onPublish() {
-    console.log("[v0] Published post:", {
-      title,
-      tags,
-      content,
-      publishedAt: new Date().toISOString(),
-    })
-    // You could optionally clear the form or show a toast here.
+  async function onPublish() {
+    await createPost({title, content, image: coverImageUrl});
+    toast.success("Post published!")
+    // Clear form
+    setTitle("")
+    setContent("")
+    setCoverImageUrl(null)
+    setProofreadActive(false)
+    setActiveTab("editor")
   }
 
   // AceternityUI-inspired micro-animations
@@ -244,9 +237,9 @@ Happy writing!`)
               </motion.div>
 
               <motion.div whileHover={buttonWhileHover} whileTap={buttonWhileTap} className="ml-auto">
-                <Button onClick={onPublish}>
+                <Button onClick={onPublish} disabled={isCreatingPost}>
                   <Send className="mr-2 size-4" />
-                  Publish
+                  {isCreatingPost ? "Publishing..." : "Publish"}
                 </Button>
               </motion.div>
             </div>

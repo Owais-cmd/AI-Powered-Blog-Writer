@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { motion } from "framer-motion"
 import { Badge } from "@/components/ui/badge"
@@ -8,20 +8,37 @@ import { Separator } from "@/components/ui/separator"
 import { Heart, MessageCircle } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import {Link} from "react-router-dom"
+import { usePostStore } from "../store/usePostStore"
+import { useAuthStore } from "../store/useAuthStore"
+import {toast} from "react-hot-toast"
 
-
-export default function Post({ id, title, tags, author, summary, content, initialLikes = 0, initialComments = [] }) {
+export default function Post({ id, title, tags, userId, author,summary, content, initialLikes , initialComments = [] }) {
     const [expanded, setExpanded] = React.useState(false)
+    const {user} = useAuthStore();
     const [liked, setLiked] = React.useState(false)
-    const [likes, setLikes] = React.useState(initialLikes)
+    const [likes, setLikes] = React.useState(initialLikes.length || 0)
     const [comments, setComments] = React.useState(initialComments)
     const [newComment, setNewComment] = React.useState("")
+    const {likePost} = usePostStore()
 
-    console.log(id)
-  
+    useEffect(() => {
+  if (user?._id) {
+     const isLiked = initialLikes.some(
+    (like) => like._id === user._id // ✅ compare by _id
+  );
+
+  setLiked(isLiked);
+  }
+}, [user?._id])  
+
     const toggleLike = React.useCallback(() => {
+      if(userId===user?._id){
+        toast.error("You cannot like your own post.")
+        return;
+      }
+      likePost(id,user._id);
+      setLikes((count) => (liked ? count - 1 : count + 1))
       setLiked((v) => !v)
-      setLikes((n) => (liked ? Math.max(0, n - 1) : n + 1))
     }, [liked])
   
     const handleAddComment = React.useCallback(() => {
@@ -80,10 +97,6 @@ export default function Post({ id, title, tags, author, summary, content, initia
               <Button
                 variant="outline"
                 size="sm"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setExpanded((v) => !v)
-                }}
                 aria-expanded={expanded}
               >
                 Check it out
