@@ -10,6 +10,7 @@ export const addComment = async (req, res) => {
         const newComment = new Comment({ content, post, user });
         await newComment.save();
         await Post.findByIdAndUpdate(post, { $push: { comments: newComment._id } });
+        await newComment.populate('user','-password');
         res.status(201).json(newComment);
     } catch (error) {
         res.status(500).json({ message: "Server Error", error: error.message });

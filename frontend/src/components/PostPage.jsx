@@ -16,9 +16,8 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { usePostStore } from "../store/usePostStore"
 import { useAuthStore } from "../store/useAuthStore"
-import { set } from "mongoose"
-import { use } from "react"
 import toast from "react-hot-toast"
+import { useCommentStore } from "../store/useCommentStore"
 
 function readingTimeFromMarkdown(md) {
   const words = md?.split(/\s+/g).filter(Boolean).length || 0
@@ -35,33 +34,19 @@ export default function PostPage() {
   const { id } = useParams()
   const { getPostById, isLoadingPost, post, likePost } = usePostStore();
   const { user } = useAuthStore();
-
+  
   const [liked, setLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(post?.likes?.length || 0)
   const [commentText, setCommentText] = useState("")
-  const [comments, setComments] = useState([
-    {
-      id: "c1",
-      name: "Jordan",
-      avatar: "/commenter-avatar.jpg",
-      text: "Great insights! The human-in-the-loop part resonated.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    },
-    {
-      id: "c2",
-      name: "Taylor",
-      avatar: "/commenter-avatar.jpg",
-      text: "Would love a deeper dive into measuring outcomes.",
-      timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    },
-  ])
+  const {addComment ,isAdding,comments,isLoadingComments,getCommentsByPost} = useCommentStore();
 
   useEffect(() => {
     if (id) {
       getPostById(id);
+      getCommentsByPost(id);
     }
 
-  }, [getPostById, id])
+  }, [getPostById, id,getCommentsByPost])
 
   useEffect(() => {
     if (post && user) {
@@ -108,14 +93,8 @@ export default function PostPage() {
   function onPostComment() {
     const text = commentText.trim()
     if (!text) return
-    const newComment = {
-      id: `c-${Date.now()}`,
-      name: "You",
-      avatar: "/abstract-ai-representation.png",
-      text,
-      timestamp: new Date().toISOString(),
-    }
-    setComments((curr) => [newComment, ...curr])
+    const newComment = addComment({content:text, post:post._id, user:user._id});
+    toast.success("Comment added successfully")
     setCommentText("")
   }
 
@@ -273,9 +252,9 @@ export default function PostPage() {
                 aria-label="Write a comment"
                 className="sm:flex-1"
               />
-              <Button onClick={onPostComment} className="sm:self-start">
+              <Button onClick={onPostComment} className="sm:self-start" disabled={isAdding || !commentText.trim()}>
                 <Send className="mr-2 h-4 w-4" aria-hidden="true" />
-                Post Comment
+                 {isAdding ? "Postind..." : "Post Comment"}
               </Button>
             </div>
 
@@ -283,15 +262,18 @@ export default function PostPage() {
 
             <ul className="space-y-4">
               {comments.map((c) => (
-                <li key={c.id} className="flex items-start gap-3">
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback>{c.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                <li key={c._id} className="flex items-start gap-3">
+                 <Link to={`/profile/${c.user.name}`}>
+                 <Avatar className="h-9 w-9">
+                    <AvatarFallback>{c.user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src={c.user.profileImage} alt="User avatar" />
                   </Avatar>
+                 </Link>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="font-medium text-foreground">{c.name}</span>
+                      <span className="font-medium text-foreground">{c.user.name}</span>
                       <span className="text-muted-foreground">
-                        {new Date(c.timestamp).toLocaleString(undefined, {
+                        {new Date(c.createdAt).toLocaleString(undefined, {
                           month: "short",
                           day: "numeric",
                           hour: "2-digit",
@@ -299,7 +281,7 @@ export default function PostPage() {
                         })}
                       </span>
                     </div>
-                    <p className="mt-1 text-foreground/90">{c.text}</p>
+                    <p className="mt-1 text-foreground/90">{c.content}</p>
                   </div>
                 </li>
               ))}
