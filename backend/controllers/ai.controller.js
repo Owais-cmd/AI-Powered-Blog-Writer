@@ -45,11 +45,11 @@ export const proofRead = async (req, res) => {
     ${content}
     `;
     const result = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         thinkingConfig: {
-          thinkingBudget: 0, // Disables thinking
+          thinkingBudget: -1, // Disables thinking
         },
       }
     });

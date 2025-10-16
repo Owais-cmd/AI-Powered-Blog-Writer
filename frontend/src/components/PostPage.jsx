@@ -151,7 +151,7 @@ export default function PostPage() {
 
         <Card className="border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
           <div>
-            {post?.image && (
+            {post?.image && (  
               <div className="relative h-60 w-full overflow-hidden rounded-t-md">
                 <img
                   src={post.image}
@@ -183,13 +183,14 @@ export default function PostPage() {
                 to={`/profile/${post?.user?.name || ""}`}
                 className="flex items-center gap-2 hover:opacity-90"
               >
-                <Avatar className="h-8 w-8">
+                  <Avatar className="h-8 w-8">
                   <AvatarImage
                     src={post?.user?.profileImage || "/placeholder.svg"}
                     alt={post?.user?.name || "Author avatar"}
                   />
                   <AvatarFallback>{(post?.user?.name || "A").slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
+                
                 <span className="font-medium text-foreground">{post?.user?.name}</span>
               </Link>
               <span aria-hidden="true">•</span>

@@ -79,9 +79,7 @@ export default function Post({ id, title, tags, userId, author, summary, content
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground">By {author}</div>
-
-
+          <Link to={`/profile/${author}`}><div className="text-sm text-muted-foreground">By {author}</div></Link>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4">
