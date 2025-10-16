@@ -13,6 +13,8 @@ import axios from "axios"
 import { Spinner } from "@/components/ui/spinner"
 import toast from "react-hot-toast"
 
+const backend_url=import.meta.env.VITE_API_URL
+
 function formatDate(isoString) {
   const d = new Date(isoString)
   if (isNaN(d.getTime())) return ""
@@ -30,7 +32,7 @@ export default function Profile() {
 
   useEffect(() => {
     async function fetchPosts() {
-      const response = await axios.get(`/api/user/${username}`);
+      const response = await axios.get(`${backend_url}/api/user/${username}`);
       setUser(response.data.user[0]);
       setPosts(response.data.posts);
 

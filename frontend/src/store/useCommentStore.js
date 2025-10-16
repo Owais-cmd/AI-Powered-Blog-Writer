@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import axios from "axios";
 
+const backend_url=import.meta.env.VITE_API_URL
+
 export const useCommentStore = create((set, get) => ({
     comments: [],
     isLoadingComments: false,
@@ -8,7 +10,7 @@ export const useCommentStore = create((set, get) => ({
     getCommentsByPost: async (postId) => {
         set({ isLoading: true });
         try {
-            const response = await axios.get(`/api/comments/${postId}`);
+            const response = await axios.get(`${backend_url}/api/comments/${postId}`);
             set({ comments: response.data, isLoading: false });
             return response.data;
         }
@@ -19,7 +21,7 @@ export const useCommentStore = create((set, get) => ({
     addComment: async (commentData) => {
         set({ isAdding: true });
         try {
-            const newComment = await axios.post('/api/comments', commentData);
+            const newComment = await axios.post(`${backend_url}/api/comments`, commentData);
             set((state) => ({ comments: [newComment.data, ...state.comments], isAdding: false }));
             return newComment.data;
         }

@@ -24,7 +24,7 @@ const app = express();
 const PORT = 5000;
 
 app.use(cors({
-  origin: "http://localhost:5173", // your frontend URL
+  origin: process.env.FRONTEND_URL, // your frontend URL
   credentials: true,               // allow cookies/auth headers
 }));
 app.use(bodyParser.urlencoded({ extended: true }));

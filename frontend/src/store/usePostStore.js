@@ -1,6 +1,8 @@
 import {create} from 'zustand';
 import axios from 'axios';
 
+const backend_url=import.meta.env.VITE_API_URL
+
 export const usePostStore = create((set,get) => ({
     myposts: [],
     post:null,
@@ -15,7 +17,7 @@ export const usePostStore = create((set,get) => ({
     getMyPosts: async () => {
         set({ isLoadingPosts: true });
         try {
-            const response = await axios.get('/api/posts/myposts', {
+            const response = await axios.get(`${backend_url}/api/posts/myposts`, {
                 withCredentials: true,
             });
             set({ myposts: response.data, isLoadingPosts: false });
@@ -27,7 +29,7 @@ export const usePostStore = create((set,get) => ({
     getFeed: async () => {
         set({ isLoadingFeed: true });
         try {
-            const response = await axios.get('/api/posts/all', {
+            const response = await axios.get(`${backend_url}/api/posts/all`, {
                 withCredentials: true,
             });
             set({ feed: response.data, isLoadingFeed: false });
@@ -39,7 +41,7 @@ export const usePostStore = create((set,get) => ({
     createPost: async (postData) => {
         set({ isCreatingPost: true });
         try {
-            const response = await axios.post('/api/posts/create', postData, {
+            const response = await axios.post(`${backend_url}/api/posts/create`, postData, {
                 withCredentials: true,
             });
             set((state) => ({ myposts: [response.data, ...state.myposts], isCreatingPost: false }));
@@ -63,7 +65,7 @@ export const usePostStore = create((set,get) => ({
                 ),
                 
             }));
-            await axios.post(`/api/posts/like/${postId}`, null, {
+            await axios.post(`${backend_url}/api/posts/like/${postId}`, null, {
                 withCredentials: true,
             });
             set({ isLikingPost: false });
@@ -78,7 +80,7 @@ export const usePostStore = create((set,get) => ({
             set((state) => ({
                 myposts: state.myposts.filter((post) => post._id !== postId),
             }));
-            await axios.delete(`/api/posts/delete/${postId}`, {
+            await axios.delete(`${backend_url}/api/posts/delete/${postId}`, {
                 withCredentials: true,
             });
             set({ isDeleting: false });
@@ -90,7 +92,7 @@ export const usePostStore = create((set,get) => ({
     getPostById: async (postId) => {
         set({ isLoadingPost: true });
         try {
-            const response = await axios.get(`/api/posts/post/${postId}`,null ,{
+            const response = await axios.get(`${backend_url}/api/posts/post/${postId}`,null ,{
                 withCredentials: true,
             });
             set({ isLoadingPost: false });
@@ -108,7 +110,7 @@ export const usePostStore = create((set,get) => ({
                 return;
             }
             set({ isSearching: true });    
-            const response = await axios.post('/api/posts/search', { query }, {
+            const response = await axios.post(`${backend_url}/api/posts/search`, { query }, {
                 withCredentials: true,
             });
             set({ feed: response.data.posts, isSearching: false });

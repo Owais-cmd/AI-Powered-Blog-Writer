@@ -33,6 +33,8 @@ const SUSPICIOUS_TOKENS = [
   "basically",
 ]
 
+const backend_url=import.meta.env.VITE_API_URL
+
 
 
 // Highlight suspicious tokens with a red dotted underline in preview.
@@ -114,7 +116,7 @@ Happy writing!`)
 
   async function onProofread() {
     // Mock: toggles proofread state so preview underlines suspicious words.
-    const response = await axios.post("http://localhost:5000/api/ai/proofRead", {content},{
+    const response = await axios.post(`${backend_url}/api/ai/proofRead`, {content},{
       withCredentials: true
     })
     setContent(response.data.paraphrased)
