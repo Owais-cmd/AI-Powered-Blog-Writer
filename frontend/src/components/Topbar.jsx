@@ -79,7 +79,7 @@ export default function Topbar({
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <Link to="/profile"><DropdownMenuItem>Profile</DropdownMenuItem></Link>
-              <DropdownMenuItem><button onClick={logout}>Sign Out</button></DropdownMenuItem>
+              <DropdownMenuItem><button onClick={logout} className="w-full flex">Sign Out</button></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <div className="pt-0.5">

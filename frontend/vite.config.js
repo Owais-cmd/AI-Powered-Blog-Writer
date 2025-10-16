@@ -11,7 +11,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  server: {
+ /* server: {
     proxy: {
       '/api': {
         target: 'http://localhost:5000', // Replace with your backend server URL
@@ -24,5 +24,5 @@ export default defineConfig({
       //   secure: false, // Set to false if targeting an insecure (HTTP) external API
       // },
     },
-  },
+  },*/
 })

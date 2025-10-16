@@ -23,9 +23,9 @@ export default function LandingPage() {
             <header className="">
                 <div className="mx-auto max-w-6xl px-6 py-4 md:px-8">
                     <nav className="flex items-center justify-between">
-                        <Link to="/" className="font-semibold tracking-tight">
-                            <span className="sr-only">AI Blog Home</span>
-                            <span aria-hidden="true">AI Blog</span>
+                        <Link to="/" className="font-semibold tracking-tight flex gap-2">
+                            <img src="/starburst.png" alt="star image" />
+                            <span aria-hidden="true">Nova Post</span>
                         </Link>
                         <div className="flex items-center gap-2">
                             <Button asChild variant="ghost" className="hover:bg-accent/20">

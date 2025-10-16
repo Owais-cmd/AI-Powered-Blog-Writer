@@ -26,8 +26,8 @@ export default function Sidebar({ isOpen = false, onNavigate }) {
     >
       {/* Header */}
       <div className="flex h-16 items-center gap-2 px-4 border-b border-border">
-        <div className="h-8 w-8 rounded-md bg-primary/10" aria-hidden />
-        <span className="font-semibold">AI Blog</span>
+        <img src="/starburst.png" alt="star png" />
+        <span className="font-semibold">Nova Post</span>
       </div>
 
       {/* Navigation */}

@@ -2,6 +2,8 @@ import {create} from 'zustand';
 import axios from 'axios';
 
 const backend_url=import.meta.env.VITE_API_URL
+axios.defaults.withCredentials = true;
+
 
 export const useAuthStore = create((set,get) => ({
     user: null,
