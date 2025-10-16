@@ -142,9 +142,9 @@ Happy writing!`)
   const buttonWhileTap = { scale: 0.98 }
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] py-8 px-4 md:py-12">
+    <main className="min-h-[calc(100vh-4rem)] py-4 px-4 md:py-4 ">
       <motion.div initial="hidden" animate="visible" variants={cardVariants} className="mx-auto w-full max-w-4xl">
-        <Card className="border-border/50 shadow-sm">
+        <Card className="border-border/50 shadow-theme">
           <CardHeader className="space-y-2">
             <CardTitle className="text-balance text-2xl font-semibold tracking-tight">Create a New Post</CardTitle>
             <CardDescription className="text-pretty">
@@ -183,7 +183,7 @@ Happy writing!`)
                   onDrop={onDrop}
                   className={[
                     "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-8 text-center transition-colors",
-                    "border-border/70 bg-background hover:border-primary/40",
+                    "border-border/70 bg-accent hover:border-primary/40",
                     dragActive ? "border-primary/60 bg-accent/10" : "",
                   ].join(" ")}
                 >

@@ -1,5 +1,10 @@
 "use client"
-
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { useEffect, useMemo, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { motion } from "framer-motion"
@@ -45,6 +50,7 @@ export default function PostPage() {
       getPostById(id);
       getCommentsByPost(id);
     }
+    console.log(post)
 
   }, [getPostById, id,getCommentsByPost])
 
@@ -139,7 +145,7 @@ export default function PostPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 md:py-12">
+    <main className="mx-auto max-w-3xl px-4 py-2 md:py-2">
       {/* Header */}
       <motion.div variants={fadeIn} initial="initial" animate="animate">
         <Button asChild variant="ghost" className="mb-4 px-0 text-muted-foreground hover:text-foreground">
@@ -198,9 +204,36 @@ export default function PostPage() {
               <span>{readTime}</span>
             </div>
           </CardHeader>
+          {/* Summary*/}
+          <CardContent className='mb-0 pb-0'>
+            <motion.div
+              variants={fadeIn}
+              initial="initial"
+              animate="animate"
+              className="prose prose-neutral prose-headings:scroll-mt-24 max-w-none mb-0 pb-0"
+            >
+              <Accordion
+      type="single"
+      collapsible
+      className="w-full  mb-0 pb-0"
+      defaultValue="item-1"
+    >
+      <AccordionItem value="item-1">
+        <AccordionTrigger className="">Summary</AccordionTrigger>
+        <AccordionContent className="flex flex-col gap-2 text-balance mb-0 pb-0">
+          <p>
+            {post?.summary}
+          </p>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+            </motion.div>
+            
+          </CardContent>
+          
 
           {/* Content */}
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 mt-0">
             <motion.div
               variants={fadeIn}
               initial="initial"

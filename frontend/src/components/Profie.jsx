@@ -96,7 +96,7 @@ const {user,update, isUpdating}=useAuthStore();
 
 
   return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-10 md:py-12">
+    <main className="mx-auto w-full max-w-4xl px-4 py-4 sm:py-10 md:py-4">
       <motion.section
         initial="hidden"
         animate="show"

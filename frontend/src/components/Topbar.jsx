@@ -34,7 +34,7 @@ export default function Topbar({
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-theme">
       <div className="flex h-16 items-center gap-3 px-4 md:px-6">
         <div className="">
           <Button variant="ghost" size="icon" aria-label="Open sidebar" onClick={()=>{onMenuClick()}}>
@@ -57,7 +57,7 @@ export default function Topbar({
           <Input
             id="topbar-search"
             placeholder={placeholder}
-            className="w-full"
+            className="w-full bg-accent"
             type="search"
             inputMode="search"
             value={query}
