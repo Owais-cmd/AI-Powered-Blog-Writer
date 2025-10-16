@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { Sparkles, Eye, Send, X, Tag } from "lucide-react"
-
+import axios from "axios"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -112,8 +112,13 @@ Happy writing!`)
  
 
 
-  function onProofread() {
+  async function onProofread() {
     // Mock: toggles proofread state so preview underlines suspicious words.
+    const response = await axios.post("http://localhost:5000/api/ai/proofRead", {content},{
+      withCredentials: true
+    })
+    setContent(response.data.paraphrased)
+    toast.success("Proofreading complete ")
     setProofreadActive(true)
   }
 

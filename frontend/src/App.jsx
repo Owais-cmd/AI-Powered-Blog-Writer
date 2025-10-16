@@ -9,6 +9,7 @@ import CreatePost from './components/CreatePost'
 import Profile from './components/Profie'
 import Signup  from './pages/Signup'
 import Login from './pages/Login'
+import ProfileSep from './components/ProfileSep'
 import {Spinner} from "@/components/ui/spinner"
 import {Toaster} from 'react-hot-toast'
 
@@ -37,6 +38,7 @@ const App = () => {
           <Route path="myPosts" element={<Profile />} />
           <Route path="profile" element={<Profile />} />
           <Route path="post/:id" element={<PostPage />} />
+          <Route path='profile/:username' element={<ProfileSep />} />       
         </Route>
       </Routes>
       <Toaster  />
