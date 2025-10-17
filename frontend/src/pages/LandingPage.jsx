@@ -51,7 +51,7 @@ export default function LandingPage() {
             </header>
 
             <main>
-                <div className="border-b h-screen" style={{ width: '100%', height: '100vh', position: 'absolute', top: "0px", left: "0px", pointerEvents: "none" }}>
+                <div className=" h-screen" style={{ width: '100%', height: '100vh', position: 'absolute', top: "0px", left: "0px", pointerEvents: "none" }}>
                     <LightRays
                         raysOrigin="top-center"
                         raysColor="#00ffff"
