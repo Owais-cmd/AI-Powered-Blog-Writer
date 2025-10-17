@@ -51,7 +51,7 @@ export default function LandingPage() {
             </header>
 
             <main>
-                <div className="border-b " style={{ width: '100%', height: '100vh', position: 'absolute', top: "0px", left: "0px", pointerEvents: "none" }}>
+                <div className="border-b h-screen" style={{ width: '100%', height: '100vh', position: 'absolute', top: "0px", left: "0px", pointerEvents: "none" }}>
                     <LightRays
                         raysOrigin="top-center"
                         raysColor="#00ffff"
@@ -127,7 +127,7 @@ export default function LandingPage() {
                 </section>
 
                 {/* Features */}
-                <section className="mx-auto pt-10 max-w-6xl px-6 pb-16 md:px-8 md:pb-24 mt-6">
+                <section className="mx-auto pt-10 max-w-6xl px-6 pb-16 md:px-8 md:pb-24 mt-10">
                     <motion.div
                         className="mb-10"
                         initial={{ opacity: 0, y: 16 }}
