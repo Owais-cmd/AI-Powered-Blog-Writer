@@ -127,7 +127,7 @@ export default function LandingPage() {
                 </section>
 
                 {/* Features */}
-                <section className="mx-auto pt-10 max-w-6xl px-6 pb-16 md:px-8 md:pb-24 ">
+                <section className="mx-auto pt-10 max-w-6xl px-6 pb-16 md:px-8 md:pb-24 pt-6">
                     <motion.div
                         className="mb-10"
                         initial={{ opacity: 0, y: 16 }}
