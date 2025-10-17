@@ -16,6 +16,10 @@ export const signin = async(req, res) => {
     if (password.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters long" });
     }
+    const user = await User.findOne({ email });
+    if(user){
+        return res.status(400).json({ message: "User already exists" });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({ name, email, password: hashedPassword });
@@ -80,7 +84,11 @@ export const getMe = async (req, res) => {
 
 export const logout = (req, res) => {
     try { 
-    res.clearCookie('token');
+    res.clearCookie('token', {
+        httpOnly: true,
+        sameSite: 'None',
+        secure: true,
+    });
     res.status(200).json({ message: "Logout successful" });
     } catch (error) {
         console.log("logging out : ",error);

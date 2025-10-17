@@ -24,16 +24,16 @@ export const useAuthStore = create((set,get) => ({
         }
     },
     signup:async({name,email,password})=>{
-        set((state)=>({isSigningIn:true}));
+        set((state)=>({isSigningUp:true}));
         try {
             const res = await axios.post(`${backend_url}/api/auth/signin`,{name,email,password}, {
                 withCredentials: true,
             });
-            set((state)=>({isSigningIn:false}));
+            set((state)=>({isSigningUp:false}));
             get().getMe();
             return {success:true,message:res.data.message};
         } catch (error) {
-            set((state)=>({isSigningIn:false}));
+            set((state)=>({isSigningUp:false}));
             return {success:false,message:error.response.data.message};
         }
     },
@@ -53,7 +53,7 @@ export const useAuthStore = create((set,get) => ({
     },
     logout:async()=>{
         try {
-            await axios.post(`${backend_url}/api/auth/logout`, {
+            await axios.post(`${backend_url}/api/auth/logout`, null, {
                 withCredentials: true,
             });
             set((state)=>({user:null}));
