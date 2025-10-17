@@ -38,6 +38,11 @@ app.use('/api/posts', postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/ai', aiRoutes);
 
+// in server.js or index.js
+app.get("/ping", (req, res) => {
+  res.status(200).send("Server is alive");
+});
+
 app.listen(PORT, () => {
   connectDB(process.env.MONGO_DB_URL);
   console.log(`Server is running on http://localhost:${PORT}`);
